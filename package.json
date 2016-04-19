@@ -2,9 +2,17 @@
   "name": "butler",
   "private": true,
   "scripts": {
-    "start": "meteor run"
+    "start": "meteor run",
+    "test": "npm run lint && chimp --mocha --path=tests --browser=phantomjs",
+    "lint": "eslint . --ext .jsx,.js",
+    "fix": "eslint . --ext .jsx,.js --fix",
+    "watch": "chimp --ddp=http://localhost:3000 --watch --mocha --path=tests"
   },
   "dependencies": {
-    "meteor-node-stubs": "~0.2.0"
+    "lodash": "^4.11.1",
+    "meteor-node-stubs": "~0.2.0",
+    "param-store": "poetic/param-store",
+    "react": "^15.0.1",
+    "react-dom": "^15.0.1"
   }
 }
