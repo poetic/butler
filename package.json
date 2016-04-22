@@ -9,6 +9,7 @@
     "watch": "chimp --ddp=http://localhost:3000 --watch --mocha --path=tests"
   },
   "dependencies": {
+    "latest-version": "^2.0.0",
     "lodash": "^4.11.1",
     "meteor-node-stubs": "~0.2.0",
     "param-store": "poetic/param-store",
