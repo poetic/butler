@@ -17,3 +17,15 @@ es5-shim                # ECMAScript 5 compatibility for older browsers.
 ecmascript              # Enable ECMAScript2015+ syntax in app code
 
 static-html
+poetic:harvest
+aldeed:simple-schema
+aldeed:collection2
+zimme:collection-behaviours
+dburles:collection-helpers
+poetic:trello
+accounts-password
+zimme:collection-timestampable
+percolate:synced-cron
+momentjs:moment
+matb33:collection-hooks
+risul:moment-timezone
