@@ -45,6 +45,17 @@ JiraSync = {
     });
   },
 
+  _updateWorklog(id, worklogId, worklog, callback) {
+    this.jira.issue.updateWorkLog({
+        issueId: id,
+        worklogId: worklogId,
+        worklog: worklog
+    }, function(error, res) {
+      callback(error,res);
+
+    });
+  },
+
   // Default to 1 day updated since, could potentially do something more robust here
   update( updatedSince, maxDate ){
     var self = this;
@@ -98,13 +109,51 @@ JiraSync = {
 
         var onlyInHarvest = _.difference(harvestIdsFromTimeEntries, harvestIdsFromWorklogs);
         var onlyInJira = _.difference(harvestIdsFromWorklogs, harvestIdsFromTimeEntries);
+        var intersection = _.intersection(harvestIdsFromTimeEntries, harvestIdsFromWorklogs);
 
-  /*      console.log(harvestIdsFromTimeEntries);
+  /*     console.log(harvestIdsFromTimeEntries);
         console.log(harvestIdsFromWorklogs);
-        console.log(onlyInHarvest); */
+        console.log(intersection); */
 
-        //If IDs only exist in jira --> Delete
-        if (onlyInJira.length > 100000) {
+        //If ID is in both harvest and jira --> Check for changes and UPDATE with harvest version if different
+        _.each(intersection, function(id) {
+          var timeEntry = _.find(timeEntries, function(te) {
+            return parseInt(te.harvestId, 10) === id;
+          });
+
+          var worklog = _.find(worklogs, function(wl) {
+            var comment = wl.comment;
+            var commentFragmented = comment.split(":");
+            return parseInt(commentFragmented[0], 10) === id;
+          });
+
+          var wlComparable = {
+            comment: worklog.comment,
+            timeSpentSeconds: worklog.timeSpentSeconds
+          }
+
+          var teComparable = {
+            comment: timeEntry.harvestId+":"+timeEntry.comment,
+            timeSpentSeconds: moment.duration(timeEntry.duration, 'hours').asSeconds()
+          }
+
+          var isEqual = _.isEqual(wlComparable, teComparable);
+
+  /*        console.log(wlComparable);
+          console.log(teComparable);
+          console.log(isEqual); */
+
+          if (isEqual === false) {
+            self._updateWorklog(timeEntry.jiraId, worklog.id, teComparable, function(error, res) {
+              console.log(error);
+              console.log(res);
+            });
+          }
+
+        });
+
+        //If IDs only exist in jira --> DELETE
+        if (onlyInJira.length > 0) {
           //Fetch harvest-IDs from worklogs
 
           _.each(worklogs, function(wl) {
@@ -116,18 +165,13 @@ JiraSync = {
               self._deleteWorklog(wl.id, wl.issueId, function(res) {
                 console.log(res);
               });
-
             }
-
           });
-
         } //end if
 
-        //If IDs only exist in harvest --> Insert
+        //If IDs only exist in harvest --> INSERT
         if (onlyInHarvest.length > 0) {
-
           _.each(onlyInHarvest, function(id) {
-
             var timeEntry = _.find(timeEntries, function(te) {
               return parseInt(te.harvestId, 10) === id;
             });
@@ -142,57 +186,48 @@ JiraSync = {
             self._addWorklog(timeEntry.jiraId, wl, function(error, res) {
               console.log(error);
               console.log(res);
-
             });
           }); //end each
         } //end if
-
-
-
-
-
-
-
-
-
-
-        /*
-          Create a new harvest object from the harvest timeEntries.
-          issueId,
-          duration,
-          comment
-        */
-      /*  var harvestObj = _.map(timeEntriesGrouped[id], function(entry) {
-          return {
-            issueId: entry.jiraId,
-            duration: moment.duration(entry.duration, 'hours').asSeconds(),
-            comment: entry.harvestId+":"+entry.comment
-          }
-        })*/
-    //    var comparableHarvestObj = _.sortBy(harvestObj, 'jiraId')
-
-        /*
-          Create a new jira object from the issue worklog
-          issueId,
-          duration,
-          comment
-        */
-/*
-        var jiraObj = _.map(worklogs.worklogs, function(wl) {
-          return {
-            issueId: wl.issueId,
-            duration: wl.timeSpentSeconds,
-            comment: wl.comment
-          }
-        });*/
-
-      //  console.log("-----START-------");
-    //    console.log(harvestObj);
-    //    console.log("---------------");
-  //      console.log(jiraObj);
-  //      console.log("-----END-------");
       }
     });
+
+
+    /*
+      Create a new harvest object from the harvest timeEntries.
+      issueId,
+      duration,
+      comment
+    */
+  /*  var harvestObj = _.map(timeEntriesGrouped[id], function(entry) {
+      return {
+        issueId: entry.jiraId,
+        duration: moment.duration(entry.duration, 'hours').asSeconds(),
+        comment: entry.harvestId+":"+entry.comment
+      }
+    })*/
+//    var comparableHarvestObj = _.sortBy(harvestObj, 'jiraId')
+
+    /*
+      Create a new jira object from the issue worklog
+      issueId,
+      duration,
+      comment
+    */
+/*
+    var jiraObj = _.map(worklogs.worklogs, function(wl) {
+      return {
+        issueId: wl.issueId,
+        duration: wl.timeSpentSeconds,
+        comment: wl.comment
+      }
+    });*/
+
+  //  console.log("-----START-------");
+//    console.log(harvestObj);
+//    console.log("---------------");
+//      console.log(jiraObj);
+//      console.log("-----END-------");
     //console.log(timeEntriesGrouped);
 
 
