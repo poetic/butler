@@ -20,5 +20,3 @@
 HarvestSync.importAll(function() {
   JiraSync.update();
 });
-
-//console.log(moment.duration(0.17, 'hours').asSeconds());

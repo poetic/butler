@@ -32,7 +32,7 @@ JiraSync = {
         issueId: id,
         worklog: worklog
     }, function(error, res) {
-      callback(res);
+      callback(error,res);
     });
   },
 
@@ -41,7 +41,6 @@ JiraSync = {
       issueId: issueId,
       worklogId: id
     }, function(error, res) {
-      console.log(res);
       callback(res);
     });
   },
@@ -85,7 +84,6 @@ JiraSync = {
         });
 
         worklogs = future.wait();
-
         //Fetch harvest-IDs from worklogs
         var harvestIdsFromWorklogs = _.map(worklogs, function(wl) {
           var comment = wl.comment;
@@ -101,8 +99,12 @@ JiraSync = {
         var onlyInHarvest = _.difference(harvestIdsFromTimeEntries, harvestIdsFromWorklogs);
         var onlyInJira = _.difference(harvestIdsFromWorklogs, harvestIdsFromTimeEntries);
 
+  /*      console.log(harvestIdsFromTimeEntries);
+        console.log(harvestIdsFromWorklogs);
+        console.log(onlyInHarvest); */
+
         //If IDs only exist in jira --> Delete
-        if (onlyInJira.length > 0) {
+        if (onlyInJira.length > 100000) {
           //Fetch harvest-IDs from worklogs
 
           _.each(worklogs, function(wl) {
@@ -111,26 +113,41 @@ JiraSync = {
             var id = parseInt(commentFragmented[0], 10);
 
             if (_.contains(onlyInJira, id) === true) {
-              _self = self
-              _self._deleteWorklog(wl.id, wl.issueId, function(res) {
+              self._deleteWorklog(wl.id, wl.issueId, function(res) {
                 console.log(res);
               });
+
             }
+
           });
 
         } //end if
 
-//        console.log(timeEntriesGrouped);
-
         //If IDs only exist in harvest --> Insert
         if (onlyInHarvest.length > 0) {
-          // Insert
+
+          _.each(onlyInHarvest, function(id) {
+
+            var timeEntry = _.find(timeEntries, function(te) {
+              return parseInt(te.harvestId, 10) === id;
+            });
+            console.log(timeEntry);
+
+            var wl = {
+              "comment": timeEntry.harvestId+":"+timeEntry.comment,
+              "timeSpentSeconds": moment.duration(timeEntry.duration, 'hours').asSeconds()
+            //  "started": timeEntry.date
+            }
+
+            self._addWorklog(timeEntry.jiraId, wl, function(error, res) {
+              console.log(error);
+              console.log(res);
+
+            });
+          }); //end each
+        } //end if
 
 
-
-
-
-        }
 
 
 
