@@ -22,6 +22,14 @@ Schema.UserProfile = new SimpleSchema({
   lastName: {
     type: String,
     optional: true
+  },
+  token: {
+    type: String,
+    optional: true
+  },
+  secretToken: {
+    type: String,
+    optional: true
   }
 });
 

@@ -1,4 +1,4 @@
-if( Meteor.settings['sync-trello-harvest'] ){
+/*if( Meteor.settings['sync-trello-harvest'] ){
   SyncedCron.add({
     name: 'Import from harvest, export to trello',
     schedule: function(parser) {
@@ -8,11 +8,17 @@ if( Meteor.settings['sync-trello-harvest'] ){
     job: function() {
       HarvestSync.importAll( function(){
         Meteor.setTimeout(function(){
-          TrelloSync.update( );
+          TrelloSync.update();
         },20*60*1000)
       });
     }
   });
 
   SyncedCron.start();
-}
+}*/
+
+HarvestSync.importAll(function() {
+  JiraSync.update();
+});
+
+//console.log(moment.duration(0.17, 'hours').asSeconds());

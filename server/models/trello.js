@@ -58,7 +58,7 @@ TrelloSync = {
     );
   },
 
-  _getCardSum( id ){
+  _getCardSum(id){
     let durations = TimeEntries.find({trelloId: id}).map((te) => te.duration );
 
     let durationsWithoutNull = _.without( durations, undefined );

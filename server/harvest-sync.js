@@ -7,7 +7,6 @@ harvest = new Harvest({
 
 HarvestSync = {};
 
-
 /*
  *  Add fields needed for harvest integration
  */
@@ -33,6 +32,10 @@ TimeEntries.attachSchema(new SimpleSchema({
     optional: true
   },
   harvestTrelloCardName: { // Used for trello title recovery. Probably can be removed
+    type: String,
+    optional: true
+  },
+  comment: { // Used for jira worklog comment
     type: String,
     optional: true
   }
@@ -61,10 +64,53 @@ HarvestSync._userMapping = {
     return [{address: val, verified: true}];
   }}
 };
-HarvestSync._timeEntryMapping = {
+HarvestSync._trelloTimeEntryMapping = {
   id: { mapTo: "harvestId" },
-  notes: { mapTo: "harvestTrelloCardName" },
+  notes: { mapTo: "comment" },
   external_ref: { mapTo: "trelloId", mapFunc: function(val){
+    if( val ){
+      return val.id;
+    }
+  }},
+  hours: {mapTo: "duration", mapFunc: function(val){
+    return (typeof(val) === "number") ? val : 0;
+  }},
+  spent_at: { mapTo: "date", mapfunc: function(val){
+    return moment.tz( val, Meteor.settings.timezone ).toDate();
+  }},
+  user_id: { mapTo: "userId", mapFunc: function(val){
+    let user = Meteor.users.findOne({ 'profile.harvestId': val });
+    if( user ){
+      return user._id;
+    }else{
+      console.error( "Harvest user not found" + val );
+    }
+  }},
+  task_id: { mapTo: "taskId", mapFunc: function(val){
+    if( !val ){ return; }
+
+    let task = Tasks.findOne({ harvestId: parseInt(val) });
+    if( task ){
+      return task._id;
+    }else{
+      console.error( "Harvest task not found" + val );
+    }
+  }},
+  project_id: { mapTo: "projectId", mapFunc: function(val){
+    if( !val ){ return; }
+
+    let project = Projects.findOne({ harvestId: parseInt(val) });
+    if( project ){
+      return project._id;
+    }else{
+      console.error( "Harvest project not found" + val );
+    }
+  }},
+};
+HarvestSync._jiraTimeEntryMapping = {
+  id: { mapTo: "harvestId" },
+  notes: { mapTo: "comment" },
+  external_ref: { mapTo: "jiraId", mapFunc: function(val){
     if( val ){
       return val.id;
     }
@@ -211,7 +257,15 @@ HarvestSync._importTimeEntries = function( user, date, retries, callback ){
         console.log( "Success " + date + " " + user.emails[0].address );
         HarvestSync._handleTimeEntryDeletions( resp, date, user._id );
         _.each( resp.day_entries, function(entry){
-          let doc = HarvestSync._convert( entry, HarvestSync._timeEntryMapping );
+          //console.log(entry);
+          let doc = {};
+
+          if (isNaN(entry.external_ref.id) === false) {
+            doc = HarvestSync._convert( entry, HarvestSync._jiraTimeEntryMapping );
+          } else {
+            doc = HarvestSync._convert( entry, HarvestSync._trelloTimeEntryMapping );
+          }
+          //let doc = HarvestSync._convert( entry, HarvestSync._timeEntryMapping );
           TimeEntries.upsert({ harvestId: doc.harvestId},{$set: doc});
         });
         if( callback ){ callback() };
