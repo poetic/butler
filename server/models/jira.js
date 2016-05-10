@@ -160,13 +160,15 @@ JiraSync = {
           }
 
           /*
-          * Create comparable timeEntry object with field that can be changed
+          * This conversion is necessary for rounding up harvest entries so they match jira.
           */
-
           var minutes = moment.duration(timeEntry.duration, 'hours').asMinutes();
           var minutesRound = Math.round(minutes);
           var seconds = moment.duration(minutesRound, 'minutes').asSeconds();
 
+          /*
+          * Create comparable timeEntry object with field that can be changed
+          */
           var teComparable = {
             comment: timeEntry.harvestId+":"+timeEntry.comment,
             timeSpentSeconds: seconds
@@ -203,7 +205,6 @@ JiraSync = {
             var comment = wl.comment;
             var commentFragmented = comment.split(":");
             var id = parseInt(commentFragmented[0], 10);
-
 
             if (_.contains(onlyInJira, id) === true) {
               self._deleteWorklog(wl.id, wl.issueId, function(res) {
