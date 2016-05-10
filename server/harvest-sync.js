@@ -1,3 +1,5 @@
+Future = Npm.require('fibers/future');
+
 harvest = new Harvest({
     subdomain: Meteor.settings.harvest.subdomain,
     email: Meteor.settings.harvest.email,
@@ -34,10 +36,6 @@ TimeEntries.attachSchema(new SimpleSchema({
   harvestTrelloCardName: { // Used for trello title recovery. Probably can be removed
     type: String,
     optional: true
-  },
-  comment: { // Used for jira worklog comment
-    type: String,
-    optional: true
   }
 }));
 TimeEntries._ensureIndex({harvestId: 1});
@@ -66,7 +64,7 @@ HarvestSync._userMapping = {
 };
 HarvestSync._trelloTimeEntryMapping = {
   id: { mapTo: "harvestId" },
-  notes: { mapTo: "comment" },
+  notes: { mapTo: "harvestTrelloCardName" },
   external_ref: { mapTo: "trelloId", mapFunc: function(val){
     if( val ){
       return val.id;
@@ -135,6 +133,7 @@ HarvestSync._jiraTimeEntryMapping = {
     let task = Tasks.findOne({ harvestId: parseInt(val) });
     if( task ){
       return task._id;
+
     }else{
       console.error( "Harvest task not found" + val );
     }
@@ -150,6 +149,7 @@ HarvestSync._jiraTimeEntryMapping = {
     }
   }},
 };
+
 HarvestSync._convert = function(doc, mapping){
   let newDoc = {};
   _.each(mapping,function( val,key ){
@@ -162,7 +162,21 @@ HarvestSync._convert = function(doc, mapping){
     }
   });
   return newDoc;
-}
+};
+
+HarvestSync._convert2 = function(doc, mapping, callback){
+  let newDoc = {};
+  _.each(mapping,function( val,key ){
+    if( doc.hasOwnProperty(key) ){
+      if( val.mapFunc ){
+        newDoc[ val.mapTo ] = val.mapFunc( doc[key] )
+      }else{
+        newDoc[ val.mapTo ] = doc[key];
+      }
+    }
+  });
+  callback(newDoc);
+};
 
 /*
  * Setup sync definitions
@@ -206,7 +220,7 @@ HarvestSync.importUsers = function( callback ){
   }));
 };
 
-HarvestSync._handleTimeEntryDeletions = function(resp, date, userId){
+HarvestSync._handleTimeEntryDeletions = function(resp, date, userId, callback){
   // TODO double check timezone handling
   let fromDate = moment.tz( date, Meteor.settings.timezone ).startOf('day');
   let toDate = moment.tz( date, Meteor.settings.timezone ).endOf('day');
@@ -233,9 +247,10 @@ HarvestSync._handleTimeEntryDeletions = function(resp, date, userId){
    * Harvest IDS remaining in the hash have a record locally, but not in harvest
    */
   var removeIds = _.keys( existanceHash ).map( id => parseInt(id) );
-  TimeEntries.remove({'harvestId': {$in: removeIds}});
+  TimeEntries.remove({'harvestId': {$in: removeIds}}, function(err,res){
+    if (callback) {callback();}
+  });
 };
-
 
 /*
  *  Passed in a set of tasks, wait for one to succeed before continueing
@@ -245,6 +260,7 @@ HarvestSync._handleTimeEntryDeletions = function(resp, date, userId){
  *
  *  If successful move on to next task
  */
+
 HarvestSync._importTimeEntries = function( user, date, retries, callback ){
   let self = this;
   harvest.TimeTracking.daily({
@@ -254,22 +270,32 @@ HarvestSync._importTimeEntries = function( user, date, retries, callback ){
         console.log( "Fail " + date + " " + user.emails[0].address + " : " + err );
         if( callback ){ callback() };
       }else{
-        console.log( "Success " + date + " " + user.emails[0].address );
-        HarvestSync._handleTimeEntryDeletions( resp, date, user._id );
-        _.each( resp.day_entries, function(entry){
-          //console.log(entry);
-          let doc = {};
+        //console.log(resp.for_day);
+        //console.log( "Success " + date + " " + user.emails[0].address );
+        HarvestSync._handleTimeEntryDeletions( resp, date, user._id, function() {
 
-          if (isNaN(entry.external_ref.id) === false) {
-            doc = HarvestSync._convert( entry, HarvestSync._jiraTimeEntryMapping );
+          var doc = {};
+          var docs = _.map( resp.day_entries, function(entry){
+              if (isNaN(entry.external_ref.id) === false) {
+                doc = HarvestSync._convert( entry, HarvestSync._jiraTimeEntryMapping );
+              } else {
+                doc = HarvestSync._convert( entry, HarvestSync._trelloTimeEntryMapping );
+              }
+              return doc;
+          });
+
+          if (docs.length > 0) {
+            TimeEntries.batchInsert(docs, function( err, res){
+              console.log(err);
+              console.log(res);
+              if ((res || err) && callback) { callback();}
+            });
           } else {
-            doc = HarvestSync._convert( entry, HarvestSync._trelloTimeEntryMapping );
+            if (callback) { callback();}
           }
-          //let doc = HarvestSync._convert( entry, HarvestSync._timeEntryMapping );
-          TimeEntries.upsert({ harvestId: doc.harvestId},{$set: doc});
         });
-        if( callback ){ callback() };
       }
+
     })
   );
 };
@@ -288,7 +314,8 @@ HarvestSync.importTimeEntries = function( callback ){
       if( (usersCount-1 === i) && !date.clone().add(1,'days').isBefore( toDate ) ){
         self._importTimeEntries( user, date.clone(), 0, function(){
           console.log( "Harvest: Import Time Entries complete" );
-          if( callback ){ callback(); }
+          if (callback) {callback();}
+          //Meteor.setTimeout(function() {if (callback) {callback()};}, 25000);
         })
       }else{
         self._importTimeEntries( user, date.clone(), 0, undefined )
@@ -302,7 +329,10 @@ HarvestSync.importAll = function( callback ){
   self.importProjects(function(){
     self.importUsers(function(){
       self.importTasks(function(){
-        self.importTimeEntries(callback);
+        TimeEntries.remove({}, function() {
+
+          self.importTimeEntries(callback);
+        });
       });
     });
   })

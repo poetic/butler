@@ -74,28 +74,47 @@ JiraSync = {
     */
 
 
-    //Get all timeEntries for a in harvest
+    /*
+    * Get all timeEntries in harvest
+    */
     var timeEntries = TimeEntries.find().fetch();
   //  var timeEntries = TimeEntries.aggregate([{ $group: { _id: {jiraId: '$jiraId'} } }]);
-    //Get all unique jira-issue-IDs from the timeEntries
+
+    /*
+    * Get all unique jira-issue-IDs from the timeEntries
+    */
     var jiraIds = _.unique( _.pluck(timeEntries, 'jiraId') );
-    //Group all timeEntries by jira-issue-ID
+
+    /*
+    * Group all timeEntries by jira-issue-ID
+    */
     var timeEntriesGrouped = _.groupBy(timeEntries, 'jiraId');
-    //Loop through each jira-ID
+
+    /*
+    * Loop through each jira-ID
+    */
     _.each(jiraIds, function(id) {
 
-      //Check if the id is a number, i.e. a jiraId
+      /*
+      * Check if the id is a number, i.e. a jiraId
+      */
       if (id && (isNaN(id)) === false) {
         var worklogs = [];
-
         var future = new Future();
-        //Get the worklog for the jira-issue-ID
+
+        /*
+        * Get the worklog for the jira-issue-ID
+        */
         self._getAllWorklogs(id, function(wl) {
           future.return(wl.worklogs);
         });
 
         worklogs = future.wait();
-        //Fetch harvest-IDs from worklogs
+
+
+        /*
+        * Fetch harvest-IDs from worklogs
+        */
         var harvestIdsFromWorklogs = _.map(worklogs, function(wl) {
           var comment = wl.comment;
           var commentFragmented = comment.split(":");
@@ -107,15 +126,20 @@ JiraSync = {
           return te.harvestId;
         });
 
+        /*
+        * onlyInHarvest: Harvest IDs that exist only in harvest
+        * onlyInJira: Harvest IDs that exist only in jira worklogs
+        * intersection: Harvest IDs that exist in both jira and harvest
+        */
         var onlyInHarvest = _.difference(harvestIdsFromTimeEntries, harvestIdsFromWorklogs);
         var onlyInJira = _.difference(harvestIdsFromWorklogs, harvestIdsFromTimeEntries);
         var intersection = _.intersection(harvestIdsFromTimeEntries, harvestIdsFromWorklogs);
 
-  /*     console.log(harvestIdsFromTimeEntries);
-        console.log(harvestIdsFromWorklogs);
-        console.log(intersection); */
-
-        //If ID is in both harvest and jira --> Check for changes and UPDATE with harvest version if different
+        /*
+        * if ID is in both harvest and jira
+        * check for changes and if they are different, an UPDATE has happened
+        * replace jira version with harvest version
+        */
         _.each(intersection, function(id) {
           var timeEntry = _.find(timeEntries, function(te) {
             return parseInt(te.harvestId, 10) === id;
@@ -127,65 +151,91 @@ JiraSync = {
             return parseInt(commentFragmented[0], 10) === id;
           });
 
+          /*
+          * Create comparable worklog object with fields that can be changed
+          */
           var wlComparable = {
             comment: worklog.comment,
             timeSpentSeconds: worklog.timeSpentSeconds
           }
 
+          /*
+          * Create comparable timeEntry object with field that can be changed
+          */
+
+          var minutes = moment.duration(timeEntry.duration, 'hours').asMinutes();
+          var minutesRound = Math.round(minutes);
+          var seconds = moment.duration(minutesRound, 'minutes').asSeconds();
+
           var teComparable = {
             comment: timeEntry.harvestId+":"+timeEntry.comment,
-            timeSpentSeconds: moment.duration(timeEntry.duration, 'hours').asSeconds()
+            timeSpentSeconds: seconds
           }
 
           var isEqual = _.isEqual(wlComparable, teComparable);
 
-  /*        console.log(wlComparable);
-          console.log(teComparable);
-          console.log(isEqual); */
-
+          /*
+          * if isEqual is false, an update has happened --> UPDATE
+          */
           if (isEqual === false) {
+            console.log(wlComparable);
+            console.log(teComparable);
+
             self._updateWorklog(timeEntry.jiraId, worklog.id, teComparable, function(error, res) {
-              console.log(error);
-              console.log(res);
+              if (error) {
+                console.log(error);
+              } else {
+                console.log(res);
+              }
             });
           }
-
         });
 
-        //If IDs only exist in jira --> DELETE
+        /*
+        * if ID only exist in jira --> DELETE
+        */
         if (onlyInJira.length > 0) {
-          //Fetch harvest-IDs from worklogs
 
+          /*
+          * Fetch harvest-IDs from worklogs
+          */
           _.each(worklogs, function(wl) {
             var comment = wl.comment;
             var commentFragmented = comment.split(":");
             var id = parseInt(commentFragmented[0], 10);
 
+
             if (_.contains(onlyInJira, id) === true) {
               self._deleteWorklog(wl.id, wl.issueId, function(res) {
-                console.log(res);
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log(res);
+                }
               });
             }
           });
         } //end if
 
-        //If IDs only exist in harvest --> INSERT
+        /*
+        * if ID only exist in harvest --> INSERT
+        */
         if (onlyInHarvest.length > 0) {
           _.each(onlyInHarvest, function(id) {
             var timeEntry = _.find(timeEntries, function(te) {
               return parseInt(te.harvestId, 10) === id;
             });
-            console.log(timeEntry);
 
             var wl = {
               "comment": timeEntry.harvestId+":"+timeEntry.comment,
               "timeSpentSeconds": moment.duration(timeEntry.duration, 'hours').asSeconds()
-            //  "started": timeEntry.date
             }
-
             self._addWorklog(timeEntry.jiraId, wl, function(error, res) {
-              console.log(error);
-              console.log(res);
+              if (error) {
+                console.log(error);
+              } else {
+                console.log(res);
+              }
             });
           }); //end each
         } //end if
