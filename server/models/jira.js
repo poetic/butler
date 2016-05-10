@@ -78,7 +78,17 @@ JiraSync = {
     * Get all timeEntries in harvest
     */
     var timeEntries = TimeEntries.find().fetch();
-  //  var timeEntries = TimeEntries.aggregate([{ $group: { _id: {jiraId: '$jiraId'} } }]);
+  /*  var test = TimeEntries.aggregate(
+                                        { $group: {_id: '$jiraId',
+                                            objects: {
+                                              $push: {
+                                                duration: '$duration', harvestId: '$harvestId', comment: '$comment'
+                                              }
+                                            }
+                                          }
+                                        }
+                                    );
+    console.log(test);*/
 
     /*
     * Get all unique jira-issue-IDs from the timeEntries
@@ -89,6 +99,7 @@ JiraSync = {
     * Group all timeEntries by jira-issue-ID
     */
     var timeEntriesGrouped = _.groupBy(timeEntries, 'jiraId');
+    //console.log(timeEntriesGrouped);
 
     /*
     * Loop through each jira-ID

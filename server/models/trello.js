@@ -90,6 +90,7 @@ TrelloSync = {
   // Default to 1 day updated since, could potentially do something more robust here
   update( updatedSince, maxDate ){
     var self = this;
+
     if( !updatedSince ){
       updatedSince = moment.tz( Meteor.settings.timezone ).add( -14, 'days').toDate();
     }
@@ -100,8 +101,12 @@ TrelloSync = {
       query.date['$lt'] = maxDate;
     }
 
-    var trelloIds = TimeEntries.find( query ).map((te) => te.trelloId);
+    var ids=  TimeEntries.find().map((te) => te.trelloId);
+    var trelloIds = _.filter(ids, function(id) {
+      return id != undefined;
+    })
 
+    console.log(trelloIds);
     var uniqTrelloIds = _.uniq( trelloIds );
     console.log( 'Updating ' + uniqTrelloIds.length + ' cards' );
 

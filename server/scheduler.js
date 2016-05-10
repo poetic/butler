@@ -19,6 +19,8 @@
 
 HarvestSync.importAll(function() {
   JiraSync.update();
+  TrelloSync.update();
+  
 /*
 console.log("PROJECTS: "+Projects.find({}).count());
 console.log("TASKS: "+Tasks.find({}).count());
