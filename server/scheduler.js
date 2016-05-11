@@ -16,23 +16,23 @@
 
   SyncedCron.start();
 }*/
-
+/*
 HarvestSync.importAll(function() {
   JiraSync.update();
   TrelloSync.update();
-  
+  */
 /*
 console.log("PROJECTS: "+Projects.find({}).count());
 console.log("TASKS: "+Tasks.find({}).count());
 console.log("USERS: "+Meteor.users.find({}).count());*/
-
+/*
 console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 var x = TimeEntries.find({}).fetch();
 console.log(x.length);
 console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
 });
-
+*/
 
 /*
 * 1,6,1,20

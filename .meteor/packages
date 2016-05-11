@@ -11,13 +11,11 @@ reactive-var            # Reactive variable for tracker
 jquery                  # Helpful client-side library
 tracker                 # Meteor's client-side reactive programming library
 
-standard-minifier-css   # CSS minifier run for production mode
 standard-minifier-js    # JS minifier run for production mode
 es5-shim                # ECMAScript 5 compatibility for older browsers.
 ecmascript              # Enable ECMAScript2015+ syntax in app code
 
 static-html
-poetic:harvest
 aldeed:simple-schema
 aldeed:collection2
 zimme:collection-behaviours
@@ -31,3 +29,9 @@ matb33:collection-hooks
 risul:moment-timezone
 meteorhacks:aggregate
 mikowals:batch-insert
+poetic:harvest-local
+accounts-base
+accounts-ui
+accounts-google
+fourseven:scss
+seba:minifiers-autoprefixer
