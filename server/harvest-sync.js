@@ -210,7 +210,9 @@ HarvestSync.importUsers = function( callback ){
   harvest.People.list({},Meteor.bindEnvironment(function(err, resp){
     _.each(resp, function(singleStaff){
       let harvestStaff = singleStaff.user;
+      console.log(harvestStaff);
       let doc = HarvestSync._convert( harvestStaff, HarvestSync._userMapping );
+      console.log(Meteor.users.find().fetch());
       Meteor.users.upsert({
         'emails': { $elemMatch: {'address': harvestStaff.email.toLowerCase() }}
       },{$set: doc});

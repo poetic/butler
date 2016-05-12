@@ -25,7 +25,6 @@ if (Meteor.isServer) {
 
       var future = new Future();
 
-
       JiraClient.oauth_util.swapRequestTokenWithAccessToken({
         host: Meteor.settings.jira.host,
         oauth: {
@@ -39,6 +38,29 @@ if (Meteor.isServer) {
           future.return(res);
       });
       return future.wait();
+    },
+
+    setAccessToken(accessToken, tokenSecret,userId) {
+      var future = new Future();
+
+      console.log(accessToken);
+      console.log(tokenSecret);
+      console.log(userId);
+
+
+      Meteor.users.update({_id: userId}, {$set: {'profile.accessToken': accessToken, 'profile.tokenSecret': tokenSecret}}, function(err, res) {
+        console.log(err);
+
+        future.return(res);
+      });
+      return future.wait();
     }
+
+
+
+
+
+
+
   })
 }

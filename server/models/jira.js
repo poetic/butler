@@ -19,6 +19,18 @@ JiraSync = {
       }
   }),
 
+  _getNewJiraClient(user) {
+    return new JiraClient({
+        host: Meteor.settings.jira.host,
+        oauth: {
+            token: user.profile.accessToken,
+            token_secret: user.profile.tokenSecret,
+            consumer_key: Meteor.settings.jira.consumerKey,
+            private_key: Meteor.settings.jira.privateKey
+        }
+    })
+  },
+
   _getAllWorklogs(id, callback) {
     this.jira.issue.getWorkLogs({
         issueId: id
@@ -27,8 +39,8 @@ JiraSync = {
     });
   },
 
-  _addWorklog(id, worklog, callback) {
-    this.jira.issue.addWorkLog({
+  _addWorklog(jiraClient, id, worklog, callback) {
+    jiraClient.issue.addWorkLog({
         issueId: id,
         worklog: worklog
     }, function(error, res) {
@@ -45,8 +57,8 @@ JiraSync = {
     });
   },
 
-  _updateWorklog(id, worklogId, worklog, callback) {
-    this.jira.issue.updateWorkLog({
+  _updateWorklog(jiraClient, id, worklogId, worklog, callback) {
+    jiraClient.issue.updateWorkLog({
         issueId: id,
         worklogId: worklogId,
         worklog: worklog
@@ -78,6 +90,7 @@ JiraSync = {
     * Get all timeEntries in harvest
     */
     var timeEntries = TimeEntries.find().fetch();
+    var users = Meteor.users.find().fetch();
   /*  var test = TimeEntries.aggregate(
                                         { $group: {_id: '$jiraId',
                                             objects: {
@@ -121,7 +134,6 @@ JiraSync = {
         });
 
         worklogs = future.wait();
-
 
         /*
         * Fetch harvest-IDs from worklogs
@@ -194,13 +206,23 @@ JiraSync = {
             console.log(wlComparable);
             console.log(teComparable);
 
-            self._updateWorklog(timeEntry.jiraId, worklog.id, teComparable, function(error, res) {
-              if (error) {
-                console.log(error);
-              } else {
-                console.log(res);
-              }
-            });
+            var user = _.find(users, function(u) {
+              return u._id === timeEntry.userId;
+            })
+
+            if (user.profile.accessToken && user.profile.tokenSecret) {
+              var jiraClient = self._getNewJiraClient(user);
+
+              self._updateWorklog(jiraClient, timeEntry.jiraId, worklog.id, teComparable, function(error, res) {
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log(res);
+                }
+              });
+            } else {
+              console.log(user.emails[0].address + " is missing jira link");
+            }
           }
         });
 
@@ -242,13 +264,24 @@ JiraSync = {
               "comment": timeEntry.harvestId+":"+timeEntry.comment,
               "timeSpentSeconds": moment.duration(timeEntry.duration, 'hours').asSeconds()
             }
-            self._addWorklog(timeEntry.jiraId, wl, function(error, res) {
-              if (error) {
-                console.log(error);
-              } else {
-                console.log(res);
-              }
-            });
+
+            var user = _.find(users, function(u) {
+              return u._id === timeEntry.userId;
+            })
+
+            if (user.profile.accessToken && user.profile.tokenSecret) {
+              var jiraClient = self._getNewJiraClient(user);
+              self._addWorklog(jiraClient, timeEntry.jiraId, wl, function(error, res) {
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log(res);
+                }
+              });
+            } else {
+              console.log(user.emails[0].address + " is missing jira link");
+            }
+
           }); //end each
         } //end if
       } // end if

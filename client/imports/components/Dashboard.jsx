@@ -5,10 +5,9 @@ import { Router, browserHistory} from 'react-router';
 export default class Dashboard extends Component {
 
   componentDidMount() {
-
-    if (!Meteor.user()){
+    if (Meteor.user() == null){
       browserHistory.push('/login');
-    } else if (!Meteor.user.token){
+    } else if (Meteor.user().profile.accessToken == null){
       browserHistory.push('/jiraLinker');
     }
   }

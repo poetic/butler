@@ -2,6 +2,7 @@ Schema = {};
 /*
  * XXX After initial import from rails, we can remove railsId, and freshbooksId
  */
+
 Schema.UserProfile = new SimpleSchema({
   harvestId: {
     type: Number,
@@ -23,11 +24,11 @@ Schema.UserProfile = new SimpleSchema({
     type: String,
     optional: true
   },
-  token: {
+  accessToken: {
     type: String,
     optional: true
   },
-  secretToken: {
+  tokenSecret: {
     type: String,
     optional: true
   }

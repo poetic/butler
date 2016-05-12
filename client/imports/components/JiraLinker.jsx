@@ -3,6 +3,11 @@ import { Meteor } from 'meteor/meteor';
 import { Router, browserHistory} from 'react-router';
 import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
+import CircularProgress from 'material-ui/CircularProgress';
+
+const style = {
+  marginTop: '50px'
+}
 
 
 export default class Dashboard extends Component {
@@ -25,13 +30,15 @@ export default class Dashboard extends Component {
 
   getAuthorizeURL() {
     var _this = this;
+    this.setState({step: 2});
+
+
     Meteor.call('getAuthorizeURL', function(error, res){
 
       _this.setState({
         url: res.url,
         token: res.token,
-        tokenSecret: res.token_secret,
-        step: 2
+        tokenSecret: res.token_secret
       })
 
     });
@@ -47,36 +54,51 @@ export default class Dashboard extends Component {
       _this.setState({
         accessToken: res
       })
+
+      Meteor.call('setAccessToken', _this.state.accessToken, _this.state.tokenSecret, Meteor.userId(), function(error, res) {
+        console.log(res);
+        if (res) {
+          browserHistory.push('/');
+        }
+      });
     });
   }
 
   renderStepOne() {
     if (this.state.step === 1) {
-      return <RaisedButton label="Primary" onClick={this.getAuthorizeURL.bind(this)} />
+      return <RaisedButton label="Get Authorize URL" onClick={this.getAuthorizeURL.bind(this)} />
     }
   }
 
   renderStepTwo() {
     if (this.state.step === 2) {
-      return (
-        <div>
-          <p> Click on <a target="_blank" href={this.state.url}> THIS </a> link and copy the authentication code in the field below</p>
-          <TextField hintText="Hint Text" value={this.state.oauthVerifier} onChange={this.handleTextChange.bind(this)}/>
-          <RaisedButton label="Primary" onClick={this.swapRequestTokenWithAccessToken.bind(this)} />
-        </div>
-      )
+      if (this.state.url.length > 0) {
+        return (
+          <div className="center-block">
+            <p> Click on <a target="_blank" href={this.state.url}> THIS </a> link and copy the authentication code in the field below</p>
+            <TextField hintText="Paste auth code here" value={this.state.oauthVerifier} onChange={this.handleTextChange.bind(this)}/>
+            <div className="row center-block">
+              <RaisedButton label="Get Access Token" onClick={this.swapRequestTokenWithAccessToken.bind(this)} />
+            </div>
+          </div>
+        )
+      } else {
+        return (
+          <CircularProgress size={1.5}/>
+        )
+      }
+
     }
   }
 
-
-
   render() {
     // Just render a placeholder container that will be filled in
-    console.log(this.state);
     return (
-      <div>
-        {this.renderStepOne()}
-        {this.renderStepTwo()}
+      <div className="container" style={style}>
+        <div className="col-md-6 col-md-offset-4">
+          {this.renderStepOne()}
+          {this.renderStepTwo()}
+        </div>
       </div>
     );
   }
