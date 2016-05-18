@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Router, browserHistory} from 'react-router';
+import LineChart from './LineChart.jsx';
 
 export default class Dashboard extends Component {
 
@@ -17,7 +18,7 @@ export default class Dashboard extends Component {
     return (
 
         <div>
-          Dashboard
+          <LineChart />
         </div>
     );
   }
