@@ -12,8 +12,8 @@ JiraSync = {
   jira: new JiraClient({
       host: Meteor.settings.jira.host,
       oauth: {
-          token: '1y2OCuqndd5f4kKODH2yjYvjrkCmcPGE',
-          token_secret: 'ZqHnZACdIIX7ZqH3ctdMjbRp8LQHpl41',
+          token: Meteor.settings.jira.adminAccessToken,
+          token_secret: Meteor.settings.jira.adminTokenSecret,
           consumer_key: Meteor.settings.jira.consumerKey,
           private_key: Meteor.settings.jira.privateKey
       }
@@ -35,6 +35,8 @@ JiraSync = {
     this.jira.issue.getWorkLogs({
         issueId: id
     }, function(error, res) {
+      console.log(error);
+      console.log(res);
       callback(res);
     });
   },
@@ -117,6 +119,7 @@ JiraSync = {
     /*
     * Loop through each jira-ID
     */
+    console.log(timeEntries);
     _.each(jiraIds, function(id) {
 
       /*
@@ -197,6 +200,7 @@ JiraSync = {
             timeSpentSeconds: seconds
           }
 
+
           var isEqual = _.isEqual(wlComparable, teComparable);
 
           /*
@@ -209,20 +213,24 @@ JiraSync = {
             var user = _.find(users, function(u) {
               return u._id === timeEntry.userId;
             })
+            if (user) {
+              if (user.profile.accessToken && user.profile.tokenSecret) {
+                var jiraClient = self._getNewJiraClient(user);
 
-            if (user.profile.accessToken && user.profile.tokenSecret) {
-              var jiraClient = self._getNewJiraClient(user);
-
-              self._updateWorklog(jiraClient, timeEntry.jiraId, worklog.id, teComparable, function(error, res) {
-                if (error) {
-                  console.log(error);
-                } else {
-                  console.log(res);
-                }
-              });
-            } else {
-              console.log(user.emails[0].address + " is missing jira link");
+                self._updateWorklog(jiraClient, timeEntry.jiraId, worklog.id, teComparable, function(error, res) {
+                  if (error) {
+                    console.log(error);
+                  } else {
+                    console.log(res);
+                  }
+                });
+              } else {
+                console.log(user.emails[0].address + " is missing jira link");
+              }
             }
+            else {
+              console.log("Cannot find userId " + timeEntry.userId + " from timeEntry in jira");
+           }
           }
         });
 
@@ -251,6 +259,7 @@ JiraSync = {
           });
         } //end if
 
+
         /*
         * if ID only exist in harvest --> INSERT
         */
@@ -269,19 +278,22 @@ JiraSync = {
               return u._id === timeEntry.userId;
             })
 
-            if (user.profile.accessToken && user.profile.tokenSecret) {
-              var jiraClient = self._getNewJiraClient(user);
-              self._addWorklog(jiraClient, timeEntry.jiraId, wl, function(error, res) {
-                if (error) {
-                  console.log(error);
-                } else {
-                  console.log(res);
-                }
-              });
+            if (user) {
+              if (user.profile.accessToken && user.profile.tokenSecret) {
+                var jiraClient = self._getNewJiraClient(user);
+                self._addWorklog(jiraClient, timeEntry.jiraId, wl, function(error, res) {
+                  if (error) {
+                    console.log(error);
+                  } else {
+                    console.log(res);
+                  }
+                });
+              } else {
+                console.log(user.emails[0].address + " is missing jira link");
+              }
             } else {
-              console.log(user.emails[0].address + " is missing jira link");
+              console.log("Cannot find userId " + timeEntry.userId + " from timeEntry in jira");
             }
-
           }); //end each
         } //end if
       } // end if

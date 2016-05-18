@@ -16,7 +16,6 @@ export default class MainFrame extends Component {
         <div>
           <AppBar
               title="POETIC LINKER"
-              iconClassNameRight="muidocs-icon-navigation-expand-more"
             />
         {this.props.children}
 

@@ -164,20 +164,6 @@ HarvestSync._convert = function(doc, mapping){
   return newDoc;
 };
 
-HarvestSync._convert2 = function(doc, mapping, callback){
-  let newDoc = {};
-  _.each(mapping,function( val,key ){
-    if( doc.hasOwnProperty(key) ){
-      if( val.mapFunc ){
-        newDoc[ val.mapTo ] = val.mapFunc( doc[key] )
-      }else{
-        newDoc[ val.mapTo ] = doc[key];
-      }
-    }
-  });
-  callback(newDoc);
-};
-
 /*
  * Setup sync definitions
  */
@@ -206,13 +192,13 @@ HarvestSync.importTasks = function( callback ){
   }));
 };
 
+
 HarvestSync.importUsers = function( callback ){
   harvest.People.list({},Meteor.bindEnvironment(function(err, resp){
     _.each(resp, function(singleStaff){
       let harvestStaff = singleStaff.user;
       console.log(harvestStaff);
       let doc = HarvestSync._convert( harvestStaff, HarvestSync._userMapping );
-      console.log(Meteor.users.find().fetch());
       Meteor.users.upsert({
         'emails': { $elemMatch: {'address': harvestStaff.email.toLowerCase() }}
       },{$set: doc});
@@ -274,7 +260,28 @@ HarvestSync._importTimeEntries = function( user, date, retries, callback ){
       }else{
         //console.log(resp.for_day);
         //console.log( "Success " + date + " " + user.emails[0].address );
-        HarvestSync._handleTimeEntryDeletions( resp, date, user._id, function() {
+        HarvestSync._handleTimeEntryDeletions( resp, date, user._id);
+          _.each( resp.day_entries, function(entry){
+            let doc = {};
+            console.log(entry);
+            console.log(isNaN(entry.external_ref.id));
+            if (isNaN(entry.external_ref.id) === false) {
+              doc = HarvestSync._convert( entry, HarvestSync._jiraTimeEntryMapping );
+            } else {
+            //  doc = HarvestSync._convert( entry, HarvestSync._trelloTimeEntryMapping );
+            }
+
+            var job = new Job(Jobs, 'upsert', {
+              harvestId: doc.harvestId,
+              doc: doc
+            }).save();
+
+          });
+          if (callback) { callback();}
+        }
+
+
+          /*
 
           var doc = {};
           var docs = _.map( resp.day_entries, function(entry){
@@ -287,16 +294,18 @@ HarvestSync._importTimeEntries = function( user, date, retries, callback ){
           });
 
           if (docs.length > 0) {
+            var job = new Job(Jobs, 'upsert', {
+              docs: docs
+            }).save();*/
+            /*
             TimeEntries.batchInsert(docs, function( err, res){
               console.log(err);
               console.log(res);
               if ((res || err) && callback) { callback();}
-            });
-          } else {
+            }); */
+        /*  } else {
             if (callback) { callback();}
-          }
-        });
-      }
+          }*/
 
     })
   );
@@ -331,10 +340,7 @@ HarvestSync.importAll = function( callback ){
   self.importProjects(function(){
     self.importUsers(function(){
       self.importTasks(function(){
-        TimeEntries.remove({}, function() {
-
-          self.importTimeEntries(callback);
-        });
+        self.importTimeEntries(callback);
       });
     });
   })

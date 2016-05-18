@@ -43,11 +43,6 @@ if (Meteor.isServer) {
     setAccessToken(accessToken, tokenSecret,userId) {
       var future = new Future();
 
-      console.log(accessToken);
-      console.log(tokenSecret);
-      console.log(userId);
-
-
       Meteor.users.update({_id: userId}, {$set: {'profile.accessToken': accessToken, 'profile.tokenSecret': tokenSecret}}, function(err, res) {
         console.log(err);
 

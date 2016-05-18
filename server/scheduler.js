@@ -1,3 +1,36 @@
+import { Meteor } from 'meteor/meteor';
+import { Accounts } from 'meteor/accounts-base';
+
+
+Jobs = new JobCollection('jobs');
+Jobs.allow({ admin: () => true });
+
+Meteor.startup(() => {
+  // If there are no users in the db, add one
+
+  // Start the job queue running
+  Jobs.startJobServer();
+
+  // Create new job on startup
+  const job = new Job(Jobs,'import', {}).save();
+});
+
+var workers = Job.processJobs('jobs', 'import',
+  function (job, callback) {
+
+    HarvestSync.importAll(function() {
+        JiraSync.update();
+    //  TrelloSync.update();
+    });
+
+
+    job.done();
+    callback();
+  }
+);
+
+
+
 /*if( Meteor.settings['sync-trello-harvest'] ){
   SyncedCron.add({
     name: 'Import from harvest, export to trello',
@@ -17,10 +50,7 @@
   SyncedCron.start();
 }*/
 
-HarvestSync.importAll(function() {
-    JiraSync.update();
-//  TrelloSync.update();
-});
+
 
 /*
 console.log("PROJECTS: "+Projects.find({}).count());
