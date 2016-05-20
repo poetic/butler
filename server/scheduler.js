@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 
-/*
+
 Jobs = new JobCollection('jobs');
 Jobs.allow({ admin: () => true });
 
@@ -27,7 +27,7 @@ var workers = Job.processJobs('jobs', 'import',
     job.done();
     callback();
   }
-);*/
+);
 
 
 

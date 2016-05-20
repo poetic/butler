@@ -1,5 +1,5 @@
 var JiraClient = require('jira-connector'); //hPiAIA
-Future = Npm.require('fibers/future');
+Future = require('fibers/future');
 
 TimeEntries.attachSchema(new SimpleSchema({
   jiraId: {

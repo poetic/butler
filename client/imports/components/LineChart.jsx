@@ -1,20 +1,108 @@
 import React, {Component} from 'react';
-import ReactHighcharts from 'react-highcharts'; // Expects that Highcharts was loaded in the code.
+import ReactHighcharts from 'react-highcharts';
+import HighchartsMore from 'highcharts-more';
+HighchartsMore(ReactHighcharts.Highcharts)
 
+const numDays = moment().isLeapYear() ? 366 : 365;
+const daysSoFar = moment().dayOfYear();
+const timeEntries = TimeEntries.find().fetch();
+
+// Construct The Curve
+let theCurve = [];
+let curveRunningTotal = 0;
+for (let i = 0; i < daysSoFar-1; i++) {
+  curveRunningTotal += 1617 / numDays;
+  theCurve.push([i, curveRunningTotal]);
+}
+
+// Construct Progress line
+const totalsPerDay = {};
+
+for (let i = 0; i < daysSoFar-1; i++) {
+  totalsPerDay[i] = 0;
+}
+
+// For each time entry, increase duration of corresponding day entry in
+// totalsPerDay.
+timeEntries.forEach((timeEntry) => {
+  dayOfYear = moment(timeEntry.date).dayOfYear();
+  totalsPerDay[dayOfYear] += timeEntry.duration;
+});
+
+// construct an array, which is consumed by highcharts. Create a running
+// total of hours worked.
+let dataArray = [];
+let runningTotal = 0;
+for (let prop in totalsPerDay) {
+  if (totalsPerDay.hasOwnProperty(prop)) {
+    runningTotal += totalsPerDay[prop];
+    dataArray.push([parseInt(prop), runningTotal]);
+  }
+}
 
 const config = {
-  xAxis: {
-    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  },
-  series: [{
-    data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 295.6, 454.4]
-  }]
+  title: {
+    text: 'PTO Tracker',
+    x: -20 //center
+    },
+    plotOptions: {
+    line: {
+      marker: {
+          enabled: false
+      },
+    },
+    },
+    xAxis: {
+    title: {
+      text: 'Day of Year',
+    },
+    allowDecimals: false,
+    },
+    yAxis: {
+    min: 0,
+    title: {
+        text: 'Hours'
+    },
+    plotLines: [{
+      value: 0,
+      width: 1,
+      color: '#808080'
+    }],
+    allowDecimals: false,
+    },
+    tooltip: {
+    formatter: function() {
+      const seriesName = this.point.series.name;
+      const numHours = this.point.y.toFixed(1);
+      const date = moment().dayOfYear(this.point.x);
+
+      return `${date.format('MMM Do')}<br />${numHours} hours`;
+    },
+    },
+    credits: {
+    enabled: false,
+    },
+    // legend: {
+    // layout: 'vertical',
+    // align: 'right',
+    // verticalAlign: 'middle',
+    // borderWidth: 0
+    // },
+    series: [{
+    name: 'The Curve',
+    data: theCurve,
+    dashStyle: 'longDash',
+    }, {
+    name: 'Current Progress',
+    data: dataArray,
+    }]
 };
 
 export default class LineChart extends Component {
+
   render() {
     return (
-      <ReactHighcharts config = {config}/>
+      <ReactHighcharts config = {config} />
     )
   }
 }

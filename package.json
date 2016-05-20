@@ -9,6 +9,9 @@
     "watch": "chimp --ddp=http://localhost:3000 --watch --mocha --path=tests"
   },
   "dependencies": {
+    "highcharts": "^4.2.5",
+    "highcharts-more": "^0.1.2",
+    "highcharts-solid-gauge": "^0.1.2",
     "jira-connector": "^2.3.0",
     "latest-version": "^2.0.0",
     "lodash": "^4.11.1",
@@ -17,6 +20,7 @@
     "param-store": "poetic/param-store",
     "react": "^15.0.1",
     "react-addons-css-transition-group": "^15.0.2",
+    "react-addons-pure-render-mixin": "^15.0.2",
     "react-dom": "^15.0.1",
     "react-highcharts": "^8.3.2",
     "react-router": "^2.4.0",
