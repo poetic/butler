@@ -9,8 +9,8 @@ import {RadioButton, RadioButtonGroup} from 'material-ui/RadioButton';
 
 export default class BarChart extends Component {
 
-  getChartConfig() {
-      let { user } = this.props;
+  getChartConfig(user) {
+      //let { user } = this.props;
       let billable = Math.round(user.billableHrsThisWeek());
       let concessed = Math.round(user.concessedHrsThisInterval('month'));
       let billableTimePeriod = this.props.value;
@@ -20,7 +20,7 @@ export default class BarChart extends Component {
       // console.log('quarter', quarter);
 
         //default selection on the title
-        
+
         //set the data according to the time period
       if (billableTimePeriod === 'month'){
         billable = Math.round(user.billableHrsThisMonth());

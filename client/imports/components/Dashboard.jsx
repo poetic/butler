@@ -9,13 +9,13 @@ import CircularProgress from 'material-ui/CircularProgress';
 
 class Dashboard extends Component {
   componentDidMount() {
-  /*  let { user } = this.props;
+   let { user } = this.props;
 
-    if (user){
+    if (!user){
       browserHistory.push('/login');
     } else if (user.profile.accessToken == null){
       browserHistory.push('/jiraLinker');
-    }*/
+    }
   }
 
   render() {
@@ -42,6 +42,7 @@ class Dashboard extends Component {
 }
 
 export default createContainer(() => {
+  let handle = Meteor.subscribe("Users.me");
   return {
     user: Meteor.user(),
   };

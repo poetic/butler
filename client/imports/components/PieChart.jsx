@@ -9,9 +9,10 @@ export default class PieChart extends Component {
 
   getChartConfig(user) {
     let hours = user.totalHrsThisYear();
+    console.log(hours);
     let date = new Date()
     let currentYear = moment(date).format("YYYY");
-    let totalhours = Math.round((hours/1617)*100);
+    let totalHours = Math.round((hours/1617)*100);
     let footer = Math.round(hours);
     var categories = ['Billable', 'Remaining']
     var data = [{
@@ -56,7 +57,7 @@ const config = {
         text: currentYear + ' Billable Hours Progress'
     },
     subtitle: {
-      text: '70%',
+      text: totalHours + '%',
       align: 'center',
       verticalAlign: 'middle',
       style: {

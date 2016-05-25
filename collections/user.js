@@ -111,7 +111,7 @@ Meteor.users.helpers({
   totalHrsThisYear (){
     let entriesThisYear = TimeEntries.find({
       userId: this._id,
-      date: {$gte: Utils.startOf('year'), $lte: Utils.endOf('year')},
+      date: {$gte: Utils.startOf('year'), $lte: Utils.endOf('year')}
     }).fetch();
 
     return TimeEntries.getTotalDuration(entriesThisYear);
@@ -131,7 +131,7 @@ Meteor.users.helpers({
   totalHrsThisWeek (){
     let entriesThisWeek = TimeEntries.find({
       userId: this._id,
-      date: {$gte: Utils.startOf('week'), $lte: Utils.endOf('week')},
+      date: {$gte: Utils.startOf('week'), $lte: Utils.endOf('week')}
     }).fetch();
 
     return TimeEntries.getTotalDuration(entriesThisWeek);

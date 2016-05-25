@@ -15,19 +15,6 @@ Meteor.startup(() => {
   const job = new Job(Jobs,'import', {}).save();
 });
 
-var workers = Job.processJobs('jobs', 'import',
-  function (job, callback) {
-
-    HarvestSync.importAll(function() {
-        JiraSync.update();
-    //  TrelloSync.update();
-    });
-
-
-    job.done();
-    callback();
-  }
-);
 
 
 

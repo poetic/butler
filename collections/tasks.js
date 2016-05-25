@@ -1,3 +1,6 @@
+Tasks = new Mongo.Collection("tasks",{idGeneration: 'MONGO'});
+
+
 TaskSchema = new SimpleSchema({
   name: {
     type: String,
@@ -8,9 +11,16 @@ TaskSchema = new SimpleSchema({
     defaultValue: true,
     optional: true
   },
+  harvestId: {
+    type: Number,
+    optional: true
+  }
 });
 
 Tasks.attachSchema(TaskSchema);
+if( Meteor.isServer ){
+  Tasks._ensureIndex({harvestId: 1});
+}
 
 Tasks.groupTimeEntriesByTask = timeEntries => {
   let timeEntriesByTaskId = _.groupBy(timeEntries, entry => entry.taskId);
