@@ -1,11 +1,11 @@
 import { Accounts } from 'meteor/accounts-base';
 
 Accounts.onCreateUser((options, user) => {
-  console.log(user);
-  if (user.fromWorker) {
-    console.log("FROM WORKER");
-  }
-  /*
+  var harvestUser = {};
+  if (options.fromWorker === true) {
+    harvestUser = user;
+  } else {
+    
       // restore default behavior
     if (options.profile) { user.profile = options.profile }
 
@@ -14,7 +14,7 @@ Accounts.onCreateUser((options, user) => {
 
     let service = _.keys(user.services)[0];
     let { email } = user.services[service];
-    let harvestUser = Meteor.users.findOne({'emails.address': email});
+    harvestUser = Meteor.users.findOne({'emails.address': email});
 
       // new employee that doesn't yet have harvest info
     if (! harvestUser) { throw new Meteor.Error('cannot log in', 'cannot log in') }
@@ -30,7 +30,8 @@ Accounts.onCreateUser((options, user) => {
       // remove the existing harvest user and return the user object to
       // let the accounts service reinsert
     Meteor.users.remove({_id: harvestUser._id});
-    return harvestUser;*/
-    return user;
+    //return harvestUser;
+  }
+    return harvestUser;
 
 });
