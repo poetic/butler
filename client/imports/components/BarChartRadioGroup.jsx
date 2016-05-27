@@ -1,27 +1,27 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import { Meteor } from 'meteor/meteor';
-import {RadioButton, RadioButtonGroup} from 'material-ui/RadioButton';
+import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 
 
 const style = {
   display: 'inline-block',
-  width: '150px'
-}
+  width: '150px',
+};
 
 export default class BarChartRadioGroup extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      period: "week"
-    }
+      period: 'week',
+    };
   }
 
   _toggleRadioButton(event, value) {
-    this.props.toggle(value)
+    this.props.toggle(value);
     this.setState({
-      period: value
-    })
+      period: value,
+    });
   }
 
   render() {
@@ -43,6 +43,6 @@ export default class BarChartRadioGroup extends Component {
           style={style}
         />
       </RadioButtonGroup>
-    )
+    );
   }
 }

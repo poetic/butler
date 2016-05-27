@@ -2,13 +2,14 @@
   "name": "butler",
   "private": true,
   "scripts": {
-    "start": "meteor run",
+    "start": "meteor run --settings settings.json",
     "test": "npm run lint && chimp --mocha --path=tests --browser=phantomjs",
     "lint": "eslint . --ext .jsx,.js",
     "fix": "eslint . --ext .jsx,.js --fix",
     "watch": "chimp --ddp=http://localhost:3000 --watch --mocha --path=tests"
   },
   "dependencies": {
+    "eslint-config-poetic": "^1.0.0",
     "highcharts": "^4.2.5",
     "highcharts-more": "^0.1.2",
     "highcharts-solid-gauge": "^0.1.2",

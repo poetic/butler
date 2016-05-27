@@ -1,9 +1,9 @@
 Utils = {
-  startOf (interval){
+  startOf(interval) {
     return moment().startOf(interval).toDate();
   },
 
-  endOf (interval){
+  endOf(interval) {
     return moment().endOf(interval).toDate();
   },
 };

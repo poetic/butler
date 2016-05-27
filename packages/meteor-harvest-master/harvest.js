@@ -1,1 +1,0 @@
-Harvest = Npm.require('harvest');

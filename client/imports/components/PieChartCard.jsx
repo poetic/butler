@@ -1,11 +1,11 @@
-import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
-import React, {Component} from 'react';
+import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
+import React, { Component } from 'react';
 import { Meteor } from 'meteor/meteor';
 import PieChart from './PieChart.jsx';
 
 const style = {
-  margin: '30px'
-}
+  margin: '30px',
+};
 
 export default class PieChartCard extends Component {
 
@@ -13,12 +13,12 @@ export default class PieChartCard extends Component {
     return (
       <Card style={style}>
         <CardMedia>
-          <PieChart user={this.props.user}/>
+          <PieChart user={this.props.user} />
         </CardMedia>
         <CardTitle title="Card title" subtitle="Card subtitle" />
         <CardActions>
         </CardActions>
       </Card>
-    )
+    );
   }
 }

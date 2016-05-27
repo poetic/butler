@@ -1,25 +1,25 @@
-Tasks = new Mongo.Collection("tasks",{idGeneration: 'MONGO'});
+Tasks = new Mongo.Collection('tasks', { idGeneration: 'MONGO' });
 
 
 TaskSchema = new SimpleSchema({
   name: {
     type: String,
-    optional: true
+    optional: true,
   },
   billable: {
     type: Boolean,
     defaultValue: true,
-    optional: true
+    optional: true,
   },
   harvestId: {
     type: Number,
-    optional: true
-  }
+    optional: true,
+  },
 });
 
 Tasks.attachSchema(TaskSchema);
-if( Meteor.isServer ){
-  Tasks._ensureIndex({harvestId: 1});
+if (Meteor.isServer) {
+  Tasks._ensureIndex({ harvestId: 1 });
 }
 
 Tasks.groupTimeEntriesByTask = timeEntries => {
@@ -36,9 +36,9 @@ Tasks.groupTimeEntriesByTask = timeEntries => {
 };
 
 Tasks.getName = taskId => {
-  return Tasks.findOne({_id: taskId}).name;
+  return Tasks.findOne({ _id: taskId }).name;
 };
 
 Tasks.getConcessedTaskIds = () => {
-  return Tasks.find({name: {$regex: /concession/}}).map(task => task._id);
+  return Tasks.find({ name: { $regex: /concession/ } }).map(task => task._id);
 };

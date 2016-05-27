@@ -29,7 +29,6 @@ matb33:collection-hooks
 risul:moment-timezone
 meteorhacks:aggregate
 mikowals:batch-insert
-poetic:harvest-local
 accounts-base
 accounts-ui
 accounts-google
@@ -39,3 +38,4 @@ vsivsi:job-collection
 twbs:bootstrap
 session
 react-meteor-data
+service-configuration

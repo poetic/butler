@@ -1,37 +1,36 @@
 import { Accounts } from 'meteor/accounts-base';
 
-Accounts.onCreateUser((options, user) => {
-  var harvestUser = {};
-  if (options.fromWorker === true) {
-    harvestUser = user;
-  } else {
-    
-      // restore default behavior
-    if (options.profile) { user.profile = options.profile }
+// Accounts.onCreateUser((options, user) => {
+  // var harvestUser = {};
+  // if (options.fromWorker === true) {
+    // harvestUser = user;
+  // } else {
 
-      // return user being created by harvest sync
-    if (! user.services) { return user }
+      // // restore default behavior
+    // if (options.profile) { user.profile = options.profile; }
 
-    let service = _.keys(user.services)[0];
-    let { email } = user.services[service];
-    harvestUser = Meteor.users.findOne({'emails.address': email});
+      // // return user being created by harvest sync
+    // if (! user.services) { return user; }
 
-      // new employee that doesn't yet have harvest info
-    if (! harvestUser) { throw new Meteor.Error('cannot log in', 'cannot log in') }
+    // let service = _.keys(user.services)[0];
+    // let { email } = user.services[service];
+    // harvestUser = Meteor.users.findOne({ 'emails.address': email });
 
-      // attach servies to existing harvest user
-    if (! harvestUser.services) {
-      harvestUser.services = {
-        resume: {loginTokens: []},
-        [`${service}`]: user.services[service],
-      };
-    }
+      // // new employee that doesn't yet have harvest info
+    // if (!harvestUser) { throw new Meteor.Error('cannot log in', 'cannot log in'); }
 
-      // remove the existing harvest user and return the user object to
-      // let the accounts service reinsert
-    Meteor.users.remove({_id: harvestUser._id});
-    //return harvestUser;
-  }
-    return harvestUser;
+      // // attach servies to existing harvest user
+    // if (!harvestUser.services) {
+      // harvestUser.services = {
+        // resume: { loginTokens: [] },
+        // [`${service}`]: user.services[service],
+      // };
+    // }
 
-});
+      // // remove the existing harvest user and return the user object to
+      // // let the accounts service reinsert
+    // Meteor.users.remove({ _id: harvestUser._id });
+    // // return harvestUser;
+  // }
+  // return harvestUser;
+// });

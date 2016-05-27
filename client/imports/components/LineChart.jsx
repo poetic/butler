@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import ReactHighcharts from 'react-highcharts';
 import HighchartsMore from 'highcharts-more';
-HighchartsMore(ReactHighcharts.Highcharts)
+HighchartsMore(ReactHighcharts.Highcharts);
 import CircularProgress from 'material-ui/CircularProgress';
 
 
@@ -16,7 +16,7 @@ export default class LineChart extends Component {
     // Construct The Curve
     let theCurve = [];
     let curveRunningTotal = 0;
-    for (let i = 0; i < daysSoFar-1; i++) {
+    for (let i = 0; i < daysSoFar - 1; i++) {
       curveRunningTotal += 1617 / numDays;
       theCurve.push([i, curveRunningTotal]);
     }
@@ -24,7 +24,7 @@ export default class LineChart extends Component {
     // Construct Progress line
     const totalsPerDay = {};
 
-    for (let i = 0; i < daysSoFar-1; i++) {
+    for (let i = 0; i < daysSoFar - 1; i++) {
       totalsPerDay[i] = 0;
     }
 
@@ -51,59 +51,59 @@ export default class LineChart extends Component {
     const config = {
       title: {
         text: 'PTO Tracker',
-        x: -20 //center
-        },
-        plotOptions: {
+        x: -20, // center
+      },
+      plotOptions: {
         line: {
           marker: {
-              enabled: false
+            enabled: false,
           },
         },
-        },
-        xAxis: {
+      },
+      xAxis: {
         title: {
           text: 'Day of Year',
         },
         allowDecimals: false,
-        },
-        yAxis: {
+      },
+      yAxis: {
         min: 0,
         title: {
-            text: 'Hours'
+          text: 'Hours',
         },
         plotLines: [{
           value: 0,
           width: 1,
-          color: '#808080'
+          color: '#808080',
         }],
         allowDecimals: false,
-        },
-        tooltip: {
-        formatter: function() {
+      },
+      tooltip: {
+        formatter: function () {
           const seriesName = this.point.series.name;
           const numHours = this.point.y.toFixed(1);
           const date = moment().dayOfYear(this.point.x);
 
           return `${date.format('MMM Do')}<br />${numHours} hours`;
         },
-        },
-        credits: {
+      },
+      credits: {
         enabled: false,
-        },
+      },
         // legend: {
         // layout: 'vertical',
         // align: 'right',
         // verticalAlign: 'middle',
         // borderWidth: 0
         // },
-        series: [{
+      series: [{
         name: 'The Curve',
         data: theCurve,
         dashStyle: 'longDash',
-        }, {
+      }, {
         name: 'Current Progress',
         data: dataArray,
-        }]
+      }],
     };
     return config;
   }
@@ -114,17 +114,17 @@ export default class LineChart extends Component {
     if (timeEntries) {
       console.log(timeEntries);
       return (
-          <ReactHighcharts config = {this.getChartConfig(timeEntries)} />
-      )
+          <ReactHighcharts config={this.getChartConfig(timeEntries)} />
+      );
     } else {
-      return (<CircularProgress size={1.5}/>);
+      return (<CircularProgress size={1.5} />);
     }
 
 
 
 
     return (
-      <ReactHighcharts config = {config} />
-    )
+      <ReactHighcharts config={config} />
+    );
   }
 }

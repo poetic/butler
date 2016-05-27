@@ -1,14 +1,14 @@
 
 Meteor.startup(() => {
 
-  if (Meteor.isServer){
+  if (Meteor.isServer) {
 
 
     Meteor.methods({
 
-      createMeteorUser: function(data) {
-        return Accounts.createUser({email: data.user.email, fromWorker: true});
-  	  }
-    })
+      createMeteorUser: function (data) {
+        return Accounts.createUser({ email: data.user.email, fromWorker: true });
+  	                                          },
+    });
   }
 });

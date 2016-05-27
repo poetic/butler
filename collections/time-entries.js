@@ -1,59 +1,59 @@
-//import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-TimeEntries = new Mongo.Collection("timeEntries",{idGeneration: 'MONGO'});
+// import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+TimeEntries = new Mongo.Collection('timeEntries', { idGeneration: 'MONGO' });
 
 TimeEntrySchema = new SimpleSchema({
   duration: {
     type: Number,
     decimal: true,
     defaultValue: 0,
-    optional: true
+    optional: true,
   },
   date: {
     type: Date,
-    optional: true
+    optional: true,
   },
   userId: {
     type: SimpleSchema.RegEx.id,
-    optional: true
+    optional: true,
   },
   projectId: {
     type: SimpleSchema.RegEx.id,
-    optional: true
+    optional: true,
   },
   taskId: {
     type: SimpleSchema.RegEx.id,
-    optional: true
+    optional: true,
   },
   notes: {
     type: String,
-    optional: true
+    optional: true,
   },
   harvestId: {
     type: Number,
-    optional: true
+    optional: true,
   },
   harvestTrelloCardName: { // Used for trello title recovery. Probably can be removed
     type: String,
-    optional: true
+    optional: true,
   },
   jiraId: {
     type: String,
-    optional: true
+    optional: true,
   },
   trelloId: {
     type: String,
-    optional: true
-  }
+    optional: true,
+  },
 });
 
-TimeEntries.attachSchema( TimeEntrySchema );
-if( Meteor.isServer ){
-  TimeEntries._ensureIndex({harvestId: 1});
+TimeEntries.attachSchema(TimeEntrySchema);
+if (Meteor.isServer) {
+  TimeEntries._ensureIndex({ harvestId: 1 });
 }
 TimeEntries.attachBehaviour('timestampable');
 
 TimeEntries.helpers({
-  taskName (){
+  taskName() {
     return Tasks.findOne(this.taskId).name;
   },
 });
